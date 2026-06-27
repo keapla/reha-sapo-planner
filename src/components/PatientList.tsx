@@ -12,7 +12,9 @@ import {
   X,
   PlusCircle,
   HelpCircle,
-  ShieldCheck
+  ShieldCheck,
+  Download,
+  Upload
 } from 'lucide-react';
 import { Patient, Therapist, ScheduleEntry, RoleType, TIME_SLOTS } from '../types';
 
@@ -23,6 +25,8 @@ interface PatientListProps {
   onAddPatient: (patient: Omit<Patient, 'id'>) => void;
   onRemovePatient: (id: string) => void;
   onUpdatePatient: (patient: Patient) => void;
+  onImportExcel: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onExportExcel: () => void;
 }
 
 export default function PatientList({
@@ -31,7 +35,9 @@ export default function PatientList({
   entries,
   onAddPatient,
   onRemovePatient,
-  onUpdatePatient
+  onUpdatePatient,
+  onImportExcel,
+  onExportExcel
 }: PatientListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -138,9 +144,30 @@ export default function PatientList({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full lg:w-auto">
+        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+          {/* Excel Import */}
+          <label className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-xs font-bold hover:bg-emerald-100/60 cursor-pointer transition-all whitespace-nowrap">
+            <Upload size={14} />
+            Excelインポート
+            <input 
+              type="file" 
+              accept=".xlsx,.xls" 
+              onChange={onImportExcel} 
+              className="hidden" 
+            />
+          </label>
+
+          {/* Excel Export */}
+          <button
+            onClick={onExportExcel}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-xs font-bold hover:bg-emerald-100/60 transition-all whitespace-nowrap"
+          >
+            <Download size={14} />
+            Excelエクスポート
+          </button>
+
           {/* Search bar */}
-          <div className="relative flex-1 sm:flex-initial">
+          <div className="relative flex-1 sm:flex-initial min-w-[150px]">
             <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
             <input
               type="text"

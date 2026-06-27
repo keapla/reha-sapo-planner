@@ -441,6 +441,8 @@ export default function App() {
                 onAddTherapist={handleAddTherapist}
                 onRemoveTherapist={handleRemoveTherapist}
                 onUpdateTherapist={handleUpdateTherapist}
+                onImportExcel={handleImportExcel}
+                onExportExcel={handleExportExcel}
               />
             )}
 
@@ -452,6 +454,8 @@ export default function App() {
                 onAddPatient={handleAddPatient}
                 onRemovePatient={handleRemovePatient}
                 onUpdatePatient={handleUpdatePatient}
+                onImportExcel={handleImportExcel}
+                onExportExcel={handleExportExcel}
               />
             )}
           </div>
