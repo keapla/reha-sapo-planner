@@ -1,0 +1,6 @@
+{
+  "name": "リハサポ・スケジューラー",
+  "description": "療法士(PT/OT/ST)と患者のリハビリスケジュールを自動作成・最適化する、制約充足・負荷平準化スケジューリングシステム",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
