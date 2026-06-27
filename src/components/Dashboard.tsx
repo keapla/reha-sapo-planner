@@ -23,6 +23,8 @@ interface DashboardProps {
   onResetData: () => void;
   onImportData: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onExportData: () => void;
+  onImportExcel: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onExportExcel: () => void;
 }
 
 export default function Dashboard({
@@ -33,7 +35,9 @@ export default function Dashboard({
   onOptimize,
   onResetData,
   onImportData,
-  onExportData
+  onExportData,
+  onImportExcel,
+  onExportExcel
 }: DashboardProps) {
   const [showAllSoftViolations, setShowAllSoftViolations] = useState(false);
 
@@ -65,10 +69,33 @@ export default function Dashboard({
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-          {/* Hidden file input for import */}
-          <label className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-full text-xs font-semibold hover:bg-slate-50 cursor-pointer transition-colors">
+          {/* Excel Import */}
+          <label className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-xs font-bold hover:bg-emerald-100/60 cursor-pointer transition-all">
             <Upload size={14} />
-            インポート
+            Excelインポート
+            <input 
+              type="file" 
+              accept=".xlsx,.xls" 
+              onChange={onImportExcel} 
+              className="hidden" 
+            />
+          </label>
+
+          {/* Excel Export */}
+          <button
+            onClick={onExportExcel}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-xs font-bold hover:bg-emerald-100/60 transition-all"
+          >
+            <Download size={14} />
+            Excelエクスポート
+          </button>
+
+          <div className="h-4 w-px bg-slate-100 mx-1"></div>
+
+          {/* Hidden file input for JSON import */}
+          <label className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-500 rounded-full text-xs font-semibold hover:bg-slate-50 cursor-pointer transition-colors">
+            <Upload size={14} />
+            JSONインポート
             <input 
               type="file" 
               accept=".json" 
@@ -79,10 +106,11 @@ export default function Dashboard({
 
           <button
             onClick={onExportData}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-full text-xs font-semibold hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-500 rounded-full text-xs font-semibold hover:bg-slate-50 transition-colors"
+            title="JSONバックアップをダウンロードします"
           >
             <Download size={14} />
-            エクスポート
+            JSONバックアップ
           </button>
 
           <button

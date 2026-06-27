@@ -15,6 +15,7 @@ import {
 import { Therapist, Patient, ScheduleEntry, ScheduleResult } from './types';
 import { INITIAL_THERAPISTS, INITIAL_PATIENTS } from './data/initialData';
 import { validateSchedule, generateOptimalSchedule } from './utils/scheduler';
+import { exportToExcel, importFromExcel } from './utils/excelIO';
 
 import Dashboard from './components/Dashboard';
 import ScheduleGrid from './components/ScheduleGrid';
@@ -196,6 +197,36 @@ export default function App() {
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleExportExcel = () => {
+    try {
+      exportToExcel(therapists, patients);
+    } catch (err: any) {
+      alert(`Excelエクスポートに失敗しました: ${err.message}`);
+    }
+  };
+
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const result = await importFromExcel(file);
+      setTherapists(result.therapists);
+      setPatients(result.patients);
+      
+      const res = generateOptimalSchedule(result.therapists, result.patients);
+      handleUpdateEntries(res.entries);
+
+      localStorage.setItem('reha_therapists', JSON.stringify(result.therapists));
+      localStorage.setItem('reha_patients', JSON.stringify(result.patients));
+      localStorage.setItem('reha_entries', JSON.stringify(res.entries));
+
+      alert('Excelから療法士、患者、NGリストのデータを正常にインポートし、スケジュールを再生成しました！');
+    } catch (err: any) {
+      alert(`Excelインポートに失敗しました: ${err.message}`);
+    }
   };
 
   const handleResetData = () => {
@@ -387,6 +418,8 @@ export default function App() {
                 onResetData={handleResetData}
                 onImportData={handleImportData}
                 onExportData={handleExportData}
+                onImportExcel={handleImportExcel}
+                onExportExcel={handleExportExcel}
               />
             )}
 

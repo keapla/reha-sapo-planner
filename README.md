@@ -1,20 +1,62 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# リハサポ | Planner
 
-This contains everything you need to run your app locally.
+医療・介護現場のリハビリテーションスケジュール調整を自動化する、制約充足ソルバー搭載型Webアプリケーションです。
 
-View your app in AI Studio: https://ai.studio/apps/66c4c03f-1ff4-47a7-9838-35993c850c5b
+---
 
-## Run Locally
+## 🚀 完全ローカルでの起動方法 (Windows)
 
-**Prerequisites:**  Node.js
+本アプリは外部のAPIやサーバーへのアクセスを行わず、すべての計算およびデータ管理が**完全にローカル（ブラウザ内）で動作**します。
 
+### 簡単起動 (バッチファイル)
+リポジトリ直下にある **`run_local.bat`** をダブルクリックするだけで、自動的に依存関係のセットアップと開発サーバーの起動が行われ、ブラウザでアプリケーションが立ち上がります。
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+*※前提条件として [Node.js](https://nodejs.org/) のインストールが必要です。*
+
+### 手動での起動手順 (Mac / Linux またはターミナル環境)
+1. 依存関係のインストール:
+   ```bash
+   npm install
+   ```
+2. ローカルサーバーの起動:
+   ```bash
+   npm run dev
+   ```
+3. ブラウザで `http://localhost:3000` を開きます。
+
+---
+
+## 📊 Excel での一括インポート・エクスポート機能
+
+ダッシュボード画面から、療法士、患者、NG指定リストのデータを**1つのExcelファイル（3枚のシート構成）**で一括してエクスポートおよびインポートできます。
+
+### Excelファイルのシート構成とテンプレート仕様
+
+Excelファイルには以下の3つのシートが必要です。
+
+#### 1. 「療法士マスター」シート
+療法士の基本情報と、勤務・スケジュール作成上の制約を管理します。
+* **療法士ID**: システム内で一意の識別子（例: `t-1`, `t-2`）
+* **名前**: 療法士の氏名
+* **職種(PT/OT/ST)**: 資格（`PT` / `OT` / `ST` のいずれか）
+* **休憩開始枠(1-22)**: 60分間の休憩を開始するコマ（1枠目(9:00)〜22枠目(15:40)から番号で選択）
+* **業務外時間枠(1-24のカンマ区切り)**: カンファレンス等でスケジュールを割り当てられない時間枠を1〜24の番号でカンマ区切りで入力（例: `1, 2, 3`）
+
+#### 2. 「患者・オーダーマスター」シート
+患者の氏名と、当日のリハビリ処方オーダー数（コマ数）を管理します。
+* **患者ID**: システム内で一意の識別子（例: `p-1`, `p-2`）
+* **名前**: 患者の氏名
+* **PTオーダー枠数**: 理学療法の当日のオーダーコマ数（0以上の整数）
+* **OTオーダー枠数**: 作業療法の当日のオーダーコマ数（0以上の整数）
+* **STオーダー枠数**: 言語聴覚療法の当日のオーダーコマ数（0以上の整数）
+
+#### 3. 「NGリスト」シート
+特定の患者に割り当ててはいけない療法士（相性・トラブル防止等のNG設定）を管理します。
+* **患者ID**: NG設定を行う患者のID
+* **患者名**: 患者の氏名
+* **NG療法士ID**: 担当から除外したい療法士のID
+* **NG療法士名**: 対象療法士の氏名
