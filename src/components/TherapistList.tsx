@@ -14,10 +14,11 @@ import {
   Download,
   Upload
 } from 'lucide-react';
-import { Therapist, RoleType, TIME_SLOTS } from '../types';
+import { Therapist, RoleType, TIME_SLOTS, ScheduleEntry } from '../types';
 
 interface TherapistListProps {
   therapists: Therapist[];
+  entries: ScheduleEntry[];
   onAddTherapist: (therapist: Omit<Therapist, 'id'>) => void;
   onRemoveTherapist: (id: string) => void;
   onUpdateTherapist: (therapist: Therapist) => void;
@@ -37,6 +38,7 @@ const BREAK_OPTIONS = [
 
 export default function TherapistList({
   therapists,
+  entries,
   onAddTherapist,
   onRemoveTherapist,
   onUpdateTherapist,
@@ -52,6 +54,7 @@ export default function TherapistList({
   const [newRole, setNewRole] = useState<RoleType>('PT');
   const [newBreakStart, setNewBreakStart] = useState(11); // default 12:40
   const [newBusySlots, setNewBusySlots] = useState<number[]>([]);
+  const [newPastUnits, setNewPastUnits] = useState<number>(0);
 
   // Filtering
   const filtered = therapists.filter(t => {
@@ -65,6 +68,7 @@ export default function TherapistList({
     setNewRole('PT');
     setNewBreakStart(11);
     setNewBusySlots([]);
+    setNewPastUnits(0);
     setIsModalOpen(true);
   };
 
@@ -76,7 +80,8 @@ export default function TherapistList({
       name: newName,
       role: newRole,
       breakStartSlot: newBreakStart,
-      busySlots: newBusySlots
+      busySlots: newBusySlots,
+      pastUnits: newPastUnits
     });
 
     setIsModalOpen(false);
@@ -161,12 +166,19 @@ export default function TherapistList({
           if (t.role === 'ST') roleTagColor = "bg-rose-50 border-rose-100 text-rose-700";
 
           const breakLabel = BREAK_OPTIONS.find(b => b.startSlot === t.breakStartSlot)?.label || `枠 ${t.breakStartSlot}`;
+          const assignedCount = entries.filter(e => e.therapistId === t.id).length;
+          const pastCount = t.pastUnits || 0;
+          const totalCount = pastCount + assignedCount;
+          const totalHours = (totalCount * 20) / 60;
+          const pastHours = (pastCount * 20) / 60;
+          const assignedHours = (assignedCount * 20) / 60;
+          const isOverLimit = totalHours > 108;
 
           return (
             <motion.div
               layout
               key={t.id}
-              className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative group"
+              className={`bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between hover:shadow-md transition-all relative group ${isOverLimit ? 'border-red-200 bg-red-50/10' : 'border-slate-100'}`}
             >
               <div>
                 <div className="flex justify-between items-start">
@@ -184,6 +196,26 @@ export default function TherapistList({
                   >
                     <Trash2 size={16} />
                   </button>
+                </div>
+
+                {/* Hours Limit Meter */}
+                <div className="mt-4 pt-4 border-t border-slate-50 space-y-2 text-xs">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-semibold text-slate-500">週合計勤務時間（上限108h）:</span>
+                    <span className={`font-bold ${isOverLimit ? 'text-red-600' : 'text-slate-700'}`}>
+                      {totalHours.toFixed(1)} / 108 時間
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-300 ${isOverLimit ? 'bg-red-500 animate-pulse' : totalHours > 90 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                      style={{ width: `${Math.min(100, (totalHours / 108) * 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-slate-400">
+                    <span>過去消化: {pastCount}単位 ({pastHours.toFixed(1)}h)</span>
+                    <span>本日予定: {assignedCount}単位 ({assignedHours.toFixed(1)}h)</span>
+                  </div>
                 </div>
 
                 <div className="mt-4 space-y-2 pt-4 border-t border-slate-50 text-xs text-slate-600">
@@ -215,17 +247,40 @@ export default function TherapistList({
               </div>
 
               {/* Quick Inline Break Modifier */}
-              <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between">
-                <span className="text-[10px] font-semibold text-slate-400">休憩時間の変更:</span>
-                <select
-                  value={t.breakStartSlot}
-                  onChange={(e) => onUpdateTherapist({ ...t, breakStartSlot: parseInt(e.target.value, 10) })}
-                  className="px-2 py-1 text-[11px] bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-600"
-                >
-                  {BREAK_OPTIONS.map(opt => (
-                    <option key={opt.startSlot} value={opt.startSlot}>{opt.label.split(' (')[0]}</option>
-                  ))}
-                </select>
+              <div className="mt-4 pt-3 border-t border-slate-50 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-semibold text-slate-400">休憩時間の変更:</span>
+                  <select
+                    value={t.breakStartSlot}
+                    onChange={(e) => onUpdateTherapist({ ...t, breakStartSlot: parseInt(e.target.value, 10) })}
+                    className="px-2 py-1 text-[11px] bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-600 max-w-[130px]"
+                  >
+                    {BREAK_OPTIONS.map(opt => (
+                      <option key={opt.startSlot} value={opt.startSlot}>{opt.label.split(' (')[0]}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-semibold text-slate-400">過去勤務（消化）単位数:</span>
+                    <span className="text-[9px] text-slate-400">({((t.pastUnits || 0) * 20 / 60).toFixed(1)}時間)</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min={0}
+                      max={324}
+                      value={t.pastUnits !== undefined ? t.pastUnits : 0}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        onUpdateTherapist({ ...t, pastUnits: isNaN(val) ? 0 : Math.min(324, Math.max(0, val)) });
+                      }}
+                      className="w-14 px-1.5 py-0.5 text-right text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-700 font-bold"
+                    />
+                    <span className="text-[10px] text-slate-400">単位</span>
+                  </div>
+                </div>
               </div>
             </motion.div>
           );
@@ -337,6 +392,27 @@ export default function TherapistList({
                           </label>
                         );
                       })}
+                    </div>
+                  </div>
+
+                  {/* Past Units Input */}
+                  <div className="space-y-1 pt-2">
+                    <label className="text-xs font-semibold text-slate-500 block">今週の過去勤務（消化）単位数</label>
+                    <div className="flex items-center gap-3 mt-1">
+                      <input
+                        type="number"
+                        min={0}
+                        max={324}
+                        value={newPastUnits}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          setNewPastUnits(isNaN(val) ? 0 : Math.min(324, Math.max(0, val)));
+                        }}
+                        className="w-24 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-slate-700"
+                      />
+                      <span className="text-[11px] text-slate-500 leading-tight">
+                        単位（週108時間上限の計算用。今週すでに消化した総単位数です。108時間＝324単位。現在: {((newPastUnits * 20) / 60).toFixed(1)}時間）
+                      </span>
                     </div>
                   </div>
                 </div>

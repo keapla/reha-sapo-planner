@@ -438,6 +438,7 @@ export default function App() {
             {activeTab === 'therapists' && (
               <TherapistList
                 therapists={therapists}
+                entries={entries}
                 onAddTherapist={handleAddTherapist}
                 onRemoveTherapist={handleRemoveTherapist}
                 onUpdateTherapist={handleUpdateTherapist}
