@@ -20,6 +20,7 @@ import Dashboard from './components/Dashboard';
 import ScheduleGrid from './components/ScheduleGrid';
 import TherapistList from './components/TherapistList';
 import PatientList from './components/PatientList';
+import PrintSchedule from './components/PrintSchedule';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'schedule' | 'therapists' | 'patients'>('dashboard');
@@ -28,6 +29,9 @@ export default function App() {
   const [therapists, setTherapists] = useState<Therapist[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [entries, setEntries] = useState<ScheduleEntry[]>([]);
+  
+  // Export setting state
+  const [exportAnonymize, setExportAnonymize] = useState(false);
   
   // Optimization feedback states
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -219,9 +223,12 @@ export default function App() {
   const todayString = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' });
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
       
-      {/* LEFT NAVIGATION DRAWER / SIDEBAR */}
+      {/* Outer wrapper that is hidden when printing */}
+      <div className="min-h-screen flex flex-col md:flex-row no-print">
+        
+        {/* LEFT NAVIGATION DRAWER / SIDEBAR */}
       <aside className="w-full md:w-64 bg-white border-r border-slate-100 flex-shrink-0 flex flex-col justify-between shadow-sm z-30">
         <div>
           {/* Logo / Title Block */}
@@ -390,6 +397,8 @@ export default function App() {
                 entries={entries}
                 onAddEntry={handleAddManualEntry}
                 onRemoveEntry={handleRemoveManualEntry}
+                exportAnonymize={exportAnonymize}
+                setExportAnonymize={setExportAnonymize}
               />
             )}
 
@@ -415,6 +424,17 @@ export default function App() {
           </div>
         </div>
       </main>
+      </div>
+
+      {/* Print View (Visible only during printing) */}
+      <div id="printable-schedule-area" className="hidden print:block bg-white text-black p-8">
+        <PrintSchedule 
+          therapists={therapists} 
+          patients={patients} 
+          entries={entries} 
+          anonymize={exportAnonymize} 
+        />
+      </div>
     </div>
   );
 }

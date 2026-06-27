@@ -36,6 +36,7 @@ export default function PatientList({
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderFilter, setOrderFilter] = useState<'ALL' | 'PT' | 'OT' | 'ST'>('ALL');
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
   // New Patient Form State
   const [newName, setNewName] = useState('');
@@ -98,23 +99,46 @@ export default function PatientList({
   return (
     <div className="space-y-4">
       {/* Filters and Actions Header */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold text-slate-400 mr-1">オーダー絞り込み:</span>
-          <div className="flex bg-slate-100 p-0.5 rounded-full border border-slate-200">
-            {(['ALL', 'PT', 'OT', 'ST'] as const).map(type => (
+      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-400">オーダー絞り込み:</span>
+            <div className="flex bg-slate-100 p-0.5 rounded-full border border-slate-200">
+              {(['ALL', 'PT', 'OT', 'ST'] as const).map(type => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setOrderFilter(type)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${orderFilter === type ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-800'}`}
+                >
+                  {type === 'ALL' ? '全員' : `${type}対象`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-400">表示形式:</span>
+            <div className="flex bg-slate-100 p-0.5 rounded-full border border-slate-200">
               <button
-                key={type}
-                onClick={() => setOrderFilter(type)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${orderFilter === type ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-800'}`}
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${viewMode === 'table' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
               >
-                {type === 'ALL' ? '全員' : `${type}対象`}
+                表形式 (一括確認・修正)
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => setViewMode('card')}
+                className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${viewMode === 'card' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+              >
+                カード表示
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-3 w-full lg:w-auto">
           {/* Search bar */}
           <div className="relative flex-1 sm:flex-initial">
             <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
@@ -137,9 +161,178 @@ export default function PatientList({
         </div>
       </div>
 
-      {/* Grid of Patients */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map(p => {
+      {/* Table View or Grid View of Patients */}
+      {viewMode === 'table' ? (
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="px-5 py-4 text-xs font-bold text-slate-500 w-24">患者ID</th>
+                  <th className="px-5 py-4 text-xs font-bold text-slate-500 min-w-[160px]">患者氏名</th>
+                  <th className="px-5 py-4 text-xs font-bold text-slate-500 text-center w-36">理学療法 (PT)</th>
+                  <th className="px-5 py-4 text-xs font-bold text-slate-500 text-center w-36">作業療法 (OT)</th>
+                  <th className="px-5 py-4 text-xs font-bold text-slate-500 text-center w-36">言語聴覚 (ST)</th>
+                  <th className="px-5 py-4 text-xs font-bold text-slate-500">避けるべき療法士 (NG担当)</th>
+                  <th className="px-5 py-4 text-xs font-bold text-slate-500 text-center w-20">操作</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.map(p => (
+                  <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                    {/* Patient ID */}
+                    <td className="px-5 py-3.5 font-mono text-xs font-bold text-slate-400">
+                      {p.id}
+                    </td>
+
+                    {/* Patient Name Input */}
+                    <td className="px-5 py-3.5">
+                      <input
+                        type="text"
+                        value={p.name}
+                        onChange={(e) => onUpdatePatient({ ...p, name: e.target.value })}
+                        className="bg-transparent hover:bg-slate-100/70 focus:bg-white border border-transparent hover:border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg px-2.5 py-1 text-sm font-bold text-slate-700 w-full max-w-[180px] transition-all font-semibold"
+                      />
+                    </td>
+
+                    {/* PT Orders */}
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onUpdatePatient({ ...p, orders: { ...p.orders, PT: Math.max(0, p.orders.PT - 1) } })}
+                          className="w-6 h-6 bg-slate-100 hover:bg-slate-200 active:scale-90 border border-slate-200 text-slate-600 rounded-full font-bold text-xs flex items-center justify-center select-none transition-all cursor-pointer"
+                        >
+                          -
+                        </button>
+                        <span className="w-6 text-center font-bold font-mono text-sm text-indigo-600">
+                          {p.orders.PT}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => onUpdatePatient({ ...p, orders: { ...p.orders, PT: p.orders.PT + 1 } })}
+                          className="w-6 h-6 bg-slate-100 hover:bg-slate-200 active:scale-90 border border-slate-200 text-slate-600 rounded-full font-bold text-xs flex items-center justify-center select-none transition-all cursor-pointer"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
+
+                    {/* OT Orders */}
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onUpdatePatient({ ...p, orders: { ...p.orders, OT: Math.max(0, p.orders.OT - 1) } })}
+                          className="w-6 h-6 bg-slate-100 hover:bg-slate-200 active:scale-90 border border-slate-200 text-slate-600 rounded-full font-bold text-xs flex items-center justify-center select-none transition-all cursor-pointer"
+                        >
+                          -
+                        </button>
+                        <span className="w-6 text-center font-bold font-mono text-sm text-teal-600">
+                          {p.orders.OT}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => onUpdatePatient({ ...p, orders: { ...p.orders, OT: p.orders.OT + 1 } })}
+                          className="w-6 h-6 bg-slate-100 hover:bg-slate-200 active:scale-90 border border-slate-200 text-slate-600 rounded-full font-bold text-xs flex items-center justify-center select-none transition-all cursor-pointer"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
+
+                    {/* ST Orders */}
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onUpdatePatient({ ...p, orders: { ...p.orders, ST: Math.max(0, p.orders.ST - 1) } })}
+                          className="w-6 h-6 bg-slate-100 hover:bg-slate-200 active:scale-90 border border-slate-200 text-slate-600 rounded-full font-bold text-xs flex items-center justify-center select-none transition-all cursor-pointer"
+                        >
+                          -
+                        </button>
+                        <span className="w-6 text-center font-bold font-mono text-sm text-rose-600">
+                          {p.orders.ST}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => onUpdatePatient({ ...p, orders: { ...p.orders, ST: p.orders.ST + 1 } })}
+                          className="w-6 h-6 bg-slate-100 hover:bg-slate-200 active:scale-90 border border-slate-200 text-slate-600 rounded-full font-bold text-xs flex items-center justify-center select-none transition-all cursor-pointer"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
+
+                    {/* NG Therapists selection */}
+                    <td className="px-5 py-3.5">
+                      <div className="flex flex-wrap gap-1 items-center max-w-sm">
+                        {p.ngTherapistIds.map(id => {
+                          const t = therapists.find(th => th.id === id);
+                          return (
+                            <span 
+                              key={id} 
+                              className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/50 rounded-full text-[10px] font-bold"
+                            >
+                              {t?.name || id} ({t?.role || ''})
+                              <button
+                                type="button"
+                                onClick={() => onUpdatePatient({ ...p, ngTherapistIds: p.ngTherapistIds.filter(nid => nid !== id) })}
+                                className="hover:bg-rose-200 text-rose-800 rounded-full w-3.5 h-3.5 flex items-center justify-center font-extrabold text-[9px] transition-colors cursor-pointer border-0"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          );
+                        })}
+                        
+                        {/* Selector */}
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val && !p.ngTherapistIds.includes(val)) {
+                              onUpdatePatient({ ...p, ngTherapistIds: [...p.ngTherapistIds, val] });
+                            }
+                          }}
+                          className="text-[10px] bg-slate-50 border border-slate-200 text-slate-500 rounded-full px-2.5 py-1 font-bold hover:bg-slate-100 transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[110px] cursor-pointer"
+                        >
+                          <option value="">+ 追加</option>
+                          {therapists.map(th => (
+                            <option key={th.id} value={th.id} disabled={p.ngTherapistIds.includes(th.id)}>
+                              {th.name} ({th.role})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-5 py-3.5 text-center">
+                      <button
+                        onClick={() => onRemovePatient(p.id)}
+                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all cursor-pointer border-0"
+                        title="患者を削除"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-10 text-center text-sm text-slate-400 italic">
+                      該当する患者情報が見つかりません。
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map(p => {
           const sessions = getPatientScheduledSessions(p.id);
           const totalRequired = p.orders.PT + p.orders.OT + p.orders.ST;
           const assignedCount = sessions.length;
@@ -309,6 +502,7 @@ export default function PatientList({
           </div>
         )}
       </div>
+      )}
 
       {/* Add Patient Modal */}
       <AnimatePresence>

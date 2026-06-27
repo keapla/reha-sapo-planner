@@ -10,10 +10,15 @@ import {
   Calendar, 
   Clock, 
   ShieldAlert, 
-  Filter 
+  Filter,
+  Printer,
+  FileSpreadsheet,
+  EyeOff,
+  Eye
 } from 'lucide-react';
 import { Therapist, Patient, ScheduleEntry, RoleType, TIME_SLOTS } from '../types';
 import { isTherapistOnBreak } from '../utils/scheduler';
+import { exportToMatrixCSV, exportToListCSV } from '../utils/exportUtils';
 
 interface ScheduleGridProps {
   therapists: Therapist[];
@@ -21,6 +26,8 @@ interface ScheduleGridProps {
   entries: ScheduleEntry[];
   onAddEntry: (entry: Omit<ScheduleEntry, 'id'>) => void;
   onRemoveEntry: (id: string) => void;
+  exportAnonymize: boolean;
+  setExportAnonymize: (val: boolean) => void;
 }
 
 export default function ScheduleGrid({
@@ -28,7 +35,9 @@ export default function ScheduleGrid({
   patients,
   entries,
   onAddEntry,
-  onRemoveEntry
+  onRemoveEntry,
+  exportAnonymize,
+  setExportAnonymize
 }: ScheduleGridProps) {
   const [viewType, setViewType] = useState<'therapist' | 'patient'>('therapist');
   const [roleFilter, setRoleFilter] = useState<RoleType | 'ALL'>('ALL');
@@ -136,6 +145,69 @@ export default function ScheduleGrid({
               className="pl-9 pr-4 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
             />
           </div>
+        </div>
+      </div>
+
+      {/* Export & Print Options Panel */}
+      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-2xl">
+            <Printer size={16} />
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-slate-800">スケジュール出力設定 (Excel / PDF)</h4>
+            <p className="text-[10px] text-slate-400 mt-0.5">作成したスケジュールを各種フォーマットに書き出して印刷・共有できます。</p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Anonymize Switch */}
+          <label className="flex items-center gap-2 cursor-pointer select-none bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full text-xs transition-colors">
+            <input 
+              type="checkbox" 
+              checked={exportAnonymize} 
+              onChange={(e) => setExportAnonymize(e.target.checked)}
+              className="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
+            />
+            {exportAnonymize ? (
+              <span className="flex items-center gap-1 text-amber-700 font-bold">
+                <EyeOff size={11} />
+                匿名化オン (ID表示)
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-slate-600 font-bold">
+                <Eye size={11} />
+                個人情報を表示
+              </span>
+            )}
+          </label>
+
+          {/* Matrix CSV Button */}
+          <button
+            onClick={() => exportToMatrixCSV(entries, therapists, patients, { anonymize: exportAnonymize })}
+            className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold transition-all border border-emerald-100/50 cursor-pointer"
+          >
+            <FileSpreadsheet size={13} />
+            Excel (マトリクス)
+          </button>
+
+          {/* List CSV Button */}
+          <button
+            onClick={() => exportToListCSV(entries, therapists, patients, { anonymize: exportAnonymize })}
+            className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold transition-all border border-emerald-100/50 cursor-pointer"
+          >
+            <FileSpreadsheet size={13} />
+            Excel (一覧リスト)
+          </button>
+
+          {/* Print PDF Button */}
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-1 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-xs font-bold shadow-sm transition-all cursor-pointer"
+          >
+            <Printer size={13} />
+            PDF印刷・保存
+          </button>
         </div>
       </div>
 

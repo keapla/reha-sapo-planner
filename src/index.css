@@ -66,6 +66,48 @@ body {
   font-family: "Inter", "Outfit", sans-serif;
 }
 
+/* Print Styles */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  /* Make tables compact and perfectly visible when printing */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th, td {
+    border: 1px solid #4a4e4d !important;
+    padding: 4px 6px !important;
+    font-size: 10px !important;
+    color: #000000 !important;
+    background: transparent !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+    font-weight: bold !important;
+  }
+}
+
 /* Custom aesthetic optimizations for Natural Tones */
 .natural-card {
   background-color: #ffffff;

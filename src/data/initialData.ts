@@ -55,8 +55,8 @@ const PATIENT_FIRST_NAMES = [
   "昭二", "敏夫", "幸子", "久美子", "美代子", "豊", "進", "勉", "稔", "操"
 ];
 
-// Let's seed a reproducible list of 79 patients
-export const INITIAL_PATIENTS: Patient[] = Array.from({ length: 79 }, (_, index) => {
+// Let's seed a reproducible list of 80 patients
+export const INITIAL_PATIENTS: Patient[] = Array.from({ length: 80 }, (_, index) => {
   const pId = `p-${String(index + 1).padStart(2, '0')}`;
   
   // Choose Japanese name deterministically based on index
